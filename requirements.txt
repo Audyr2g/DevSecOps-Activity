@@ -7,3 +7,4 @@ marshmallow<4.0.0
 safety==3.1.0
 wheel==0.46.2
 jaraco.context==6.1.0
+setuptools==80.0.0
