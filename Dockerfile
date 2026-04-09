@@ -15,10 +15,11 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 # Set working directory
 WORKDIR /home/appuser/app
 
-# Install dependencies securely
+# Install dependencies securely AND remove build tools to reduce attack surface
 COPY requirements.txt .
 RUN pip install --upgrade pip --no-cache-dir && \
-    pip install -r requirements.txt --no-cache-dir
+    pip install -r requirements.txt --no-cache-dir && \
+    pip uninstall -y pip setuptools wheel
 
 # Copy application code
 COPY app/ ./app/
