@@ -1,6 +1,10 @@
 # Use a minimal, officially supported base image
 FROM python:3.11-slim
 
+# Patch OS vulnerabilities (upgrades OpenSSL and other system libraries)
+RUN apt-get update && apt-get upgrade -y && \
+    rm -rf /var/lib/apt/lists/*
+
 # Prevent Python from writing pyc files to disc and buffering stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

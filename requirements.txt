@@ -5,3 +5,5 @@ pytest==8.1.1
 typer==0.15.2
 marshmallow<4.0.0
 safety==3.1.0
+wheel==0.46.2
+jaraco.context==6.1.0
