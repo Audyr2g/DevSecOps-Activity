@@ -31,7 +31,7 @@ jobs:
     - name: Run Unit Tests (Pytest)
       env:
         PYTHONPATH: .
-      run: pytest tests/ -v
+      run: python -m pytest tests/ -v
 
   build-and-container-scan:
     name: Build & Container Security Scan
