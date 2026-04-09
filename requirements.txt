@@ -2,5 +2,6 @@ Flask==3.0.3
 Werkzeug==3.0.3
 gunicorn==21.2.0
 pytest==8.1.1
-typer==0.15.2  # Added to prevent breaking the safety CLI
+typer==0.15.2
+marshmallow<4.0.0  # Added to prevent breaking safety schemas
 safety==3.1.0
