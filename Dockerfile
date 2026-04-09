@@ -1,12 +1,31 @@
+# Use a minimal, officially supported base image
 FROM python:3.11-slim
 
-WORKDIR /app
+# Prevent Python from writing pyc files to disc and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
+# Create a non-root system user and group
+RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
+
+# Set working directory
+WORKDIR /home/appuser/app
+
+# Install dependencies securely
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip --no-cache-dir && \
+    pip install -r requirements.txt --no-cache-dir
 
-COPY app/ app/
+# Copy application code
+COPY app/ ./app/
 
-EXPOSE 5000
+# Transfer ownership of the application directory to the non-root user
+RUN chown -R appuser:appgroup /home/appuser/app
 
-CMD ["python", "app/main.py"]
+# Switch to the non-root user
+USER appuser
+
+EXPOSE 8080
+
+# Execute the application using a production WSGI server
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "app.main:app"]
