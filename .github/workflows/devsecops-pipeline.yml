@@ -32,7 +32,7 @@ jobs:
       run: docker build -t secure-app .
 
     - name: Container Scan
-      uses: aquasecurity/trivy-action@0.20.0
+      uses: aquasecurity/trivy-action@v0
       with:
         image-ref: secure-app
         severity: HIGH,CRITICAL
