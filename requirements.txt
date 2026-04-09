@@ -1,7 +1,7 @@
-Flask==3.0.3
-Werkzeug==3.0.3
-gunicorn==21.2.0
+Flask==3.1.3
+Werkzeug==3.1.6
+gunicorn==22.0.0
 pytest==8.1.1
 typer==0.15.2
-marshmallow<4.0.0  # Added to prevent breaking safety schemas
+marshmallow<4.0.0
 safety==3.1.0
