@@ -1,0 +1,14 @@
+rules:
+  - id: python-no-eval
+    patterns:
+      - pattern: eval(...)
+    message: Avoid eval() due to security risks
+    severity: ERROR
+    languages: [python]
+
+  - id: flask-debug-enabled
+    patterns:
+      - pattern: app.run(..., debug=True)
+    message: Flask debug mode must not be enabled
+    severity: ERROR
+    languages: [python]
