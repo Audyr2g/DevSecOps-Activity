@@ -7,45 +7,123 @@ on:
 jobs:
 
   dependency-scan:
+    name: Dependency Scan
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Dependency Scan
+
+      - name: Run pip-audit
         run: |
           pip install pip-audit
-          pip-audit -r requirements.txt
+          pip-audit -r requirements.txt -f json -o pip-audit.json
+
+      - name: Upload Dependency Scan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan
+          path: pip-audit.json
+
 
   unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
     needs: dependency-scan
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Run Tests
-        run: echo "No tests yet"
+        run: echo "No tests implemented"
+
 
   build:
+    name: Build Container
     runs-on: ubuntu-latest
     needs: unit-tests
+
     steps:
       - uses: actions/checkout@v4
-      - name: Build Image
-        run: docker build -t secure-app:${GITHUB_SHA} .
+
+      - name: Build Docker Image
+        run: docker build -t secure-app:${{ github.sha }} .
+
 
   container-scan:
+    name: Container Scan (Trivy)
     runs-on: ubuntu-latest
     needs: build
+
     steps:
       - uses: actions/checkout@v4
-      - name: Scan Image
+
+      # 🔥 IMPORTANT FIX: rebuild image in this job
+      - name: Build Image Again
+        run: docker build -t secure-app:${{ github.sha }} .
+
+      - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@v0.20.0
         with:
           image-ref: secure-app:${{ github.sha }}
+          format: json
+          output: trivy-report.json
+          exit-code: 1
           severity: CRITICAL
           ignore-unfixed: true
 
-  deploy:
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-scan
+          path: trivy-report.json
+
+
+  sbom:
+    name: Generate SBOM
     runs-on: ubuntu-latest
     needs: container-scan
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Image Again
+        run: docker build -t secure-app:${{ github.sha }} .
+
+      - name: Generate SBOM (Syft)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+          ./bin/syft secure-app:${{ github.sha }} -o cyclonedx-json > sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+
+
+  trusted-build:
+    name: Mark Trusted Build
+    runs-on: ubuntu-latest
+    needs: sbom
+
+    steps:
+      - name: Mark Trusted
+        run: |
+          echo "trusted=true" > trusted-build.txt
+          echo "image=secure-app:${{ github.sha }}" >> trusted-build.txt
+
+      - name: Upload Trusted Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trusted-build
+          path: trusted-build.txt
+
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: trusted-build
+
     steps:
       - name: Deploy
-        run: echo "Deploy successful"
+        run: echo "Deployment successful"
